@@ -1,8 +1,7 @@
 #!/bin/bash
 
-##########################################
-#This is called by incrond, which passes
-#3 variables to it.
+##########################################################
+#This is called by incrond, which passes 3 variables to it.
 #
 # $1 is the path to the file that was
 #accessed/modified
@@ -10,26 +9,39 @@
 # $2 is the filename
 #
 # $3 is the trigger that called it
-##########################################
+#
+# Example:
+#       archiver ~/Documents/ importantFile.txt IN_ACCESS
+#########################################################
 
 tmp="tmp/"
 bak="bak/"
 
-if [ $3 == "IN_ACCESS" ]        #if the script was called because a file was accessed
+if [ $3 == "IN_ACCESS" ]        #If the script was called because a file was accessed
 then
-        cp "$1$2" "$1$tmp$2"    #put a copy of the original in that directories tmp folder
-        logger $?               #log success/failure of the copy
-        logger $1$2             #log the source path/filename
-        logger $1$tmp$2         #log the desitination path/filename
-elif [ $3 == "IN_MODIFY" ]      #Otherwise if the script was called be cause the fiel as modifiesd
+        if [ ! -d $1$tmp ]      #If the tmp directory doesn't exist
+        then
+                mkdir $1$tmp    #Make it
+        fi
+
+        cp "$1$2" "$1$tmp$2"    #Put a copy of the original in that directory's tmp folder
+        logger $?               #Log success/failure of the copy
+        logger $1$2             #Log the source path/filename
+        logger $1$tmp$2         #Log the desitination path/filename
+elif [ $3 == "IN_MODIFY" ]      #Otherwise if the script was called because the file as modifiesd
 then
+        if [ ! -d $1$bak ]      #If the bak directory doesn't exist
+        then
+                mkdir $1$bak    #Make it
+        fi
+
         cp "$1$tmp$2" "$1$bak$2-$(date +'%m-%d-%y-%T')" #Copy the temporary file to the bak folder
         logger $?                                       #Log success/failure of the copy
-        if [ $? == 0 ]                                  #if the copy succeeds
+        if [ $? == 0 ]                                  #If the copy succeeds
         then
-                rm "$1$tmp$2"                           #remove the copy from the tmp folder
-                logger $?                               #log success or failure of the remove
-                logger $1$tmp$2                         #log the source path/filename
-                logger $1$bak$2                         #log the destination path/filename
+                rm "$1$tmp$2"                           #Remove the copy from the tmp folder
+                logger $?                               #Log success or failure of the remove
+                logger $1$tmp$2                         #Log the source path/filename
+                logger $1$bak$2                         #Log the destination path/filename
         fi
 fi
